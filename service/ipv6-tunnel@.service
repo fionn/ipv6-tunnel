@@ -1,0 +1,19 @@
+# vim: ft=systemd
+
+[Unit]
+Description=IPv6 tunnel
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+EnvironmentFile=/etc/tunnelbroker/%i.conf
+
+ExecStart=modprobe ipv6
+ExecStart=modprobe sit
+ExecStart=/etc/tunnelbroker/tunnel.sh up
+
+ExecStop=/etc/tunnelbroker/tunnel.sh down
+# Keep the sit module since adding it is idempotent.
+#ExecStop=modprobe -r sit
