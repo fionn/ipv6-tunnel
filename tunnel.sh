@@ -1,15 +1,16 @@
 #!/bin/bash
-# shellcheck disable=SC2153
 
-set -euo pipefail
+set -Eeuo pipefail
+
+trap "down &> /dev/null" ERR
 
 function set_dns_get_ipv4 {
-    username=$1
-    update_key=$2
-    tunnel_id=$3
+    local -r username=$1
+    local -r update_key=$2
+    local -r tunnel_id=$3
+    local -r base_url=$4
 
-    base_url=ipv4.tunnelbroker.net
-    url="https://$username:$update_key@$base_url/nic/update?hostname=$tunnel_id"
+    local -r url="https://$username:$update_key@$base_url/nic/update?hostname=$tunnel_id"
     mapfile -td " " -n 2 status_ip < <(\
        setpriv --reuid=1000 --regid=1000 --clear-groups \
        curl -4s "$url" | tr -d "\n")
@@ -21,8 +22,8 @@ function set_dns_get_ipv4 {
         exit 2
     fi
 
-    status="${status_ip[0]}"
-    ip="${status_ip[1]}"
+    local -r status="${status_ip[0]}"
+    local -r ip="${status_ip[1]}"
 
     if [[ "$status" != "good" ]] && [[ "$status" != "nochg" ]]; then
         echo "Bad response: ${status_ip[*]}" >&2
@@ -35,6 +36,7 @@ function set_dns_get_ipv4 {
     echo "$ip"
 }
 
+# shellcheck disable=SC2153
 function main {
     if [[ $# -ne 1 ]]; then
         echo "$0 takes exactly one argument; $# provided"
@@ -47,6 +49,7 @@ function main {
     export tunnel_id="$TUNNEL_ID"
     export server_ipv4="$SERVER_IPV4"
     export client_ipv6="$CLIENT_IPV6"
+    export base_url="$BASE_URL"
 
     if [[ $1 == "up" ]]; then
         up
@@ -61,7 +64,7 @@ function main {
 function up {
     local client_ipv4
     client_ipv4="$(set_dns_get_ipv4 \
-        "$username" "$update_key" "$tunnel_id")"
+        "$username" "$update_key" "$tunnel_id" "$base_url")"
     # If forwarding protocol 41 use local IPv4 address instead.
     #client_ipv4="$(ip -j -4 route | jq -r .[0].prefsrc)"
 

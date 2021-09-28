@@ -6,3 +6,4 @@ UPDATE_KEY=secret1234
 TUNNEL_ID=123456
 SERVER_IPV4=1.2.3.4
 CLIENT_IPV6=2001:dead:beef::2/64
+BASE_URL=ipv4.tunnelbroker.net
