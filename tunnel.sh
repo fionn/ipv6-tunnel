@@ -59,7 +59,8 @@ function main {
 }
 
 function up {
-    local -r client_ipv4="$(set_dns_get_ipv4 \
+    local client_ipv4
+    client_ipv4="$(set_dns_get_ipv4 \
         "$username" "$update_key" "$tunnel_id")"
     # If forwarding protocol 41 use local IPv4 address instead.
     #client_ipv4="$(ip -j -4 route | jq -r .[0].prefsrc)"
